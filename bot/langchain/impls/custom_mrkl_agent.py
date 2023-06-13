@@ -8,6 +8,7 @@ from langchain.embeddings import OpenAIEmbeddings
 from langchain.schema import SystemMessage, HumanMessage, AIMessage
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.tools import Tool
+from langchain.utilities import BingSearchAPIWrapper
 from langchain.vectorstores import Chroma
 
 
@@ -19,8 +20,8 @@ def process_new_message(chain=None, messages=None):
     return response
 def create_custom_mrkl_agent(openai_api_key, serp_api_key):
     # create all the tools, we have [search]
-    search = _create_search_api_tool(serp_api_key=serp_api_key)
-
+    # search = _create_search_api_tool(serp_api_key=serp_api_key)
+    search = _create_bing_api_tool(bing_api_key=serp_api_key)
     # create the toolkit
     tools = [search]
 
@@ -76,29 +77,29 @@ def _create_search_api_tool(serp_api_key):
                 description="当你需要回答当前世界发生的事件或者有关当前世界的事实性问题时使用。输入的数据应该是一个搜索关键词。当时使用该工具时，你的输出应该包含搜索网站的源地址。",
             )
     return search_tool
-def extract_memory(messages):
-    """
-    extract memory from messages
-    :param messages:
-    :return:
-    """
-    if len(messages) == 0:
-        raise ValueError("session messages are empty")
 
-    new_message = messages[-1]
-    if new_message['role'] != 'user':
-        raise ValueError("last message is not human message")
-    # TODO how to pass the system message to the chain ?
-    system_message = messages[0]
-    history_messages = messages[1:-1]
-    history = []
-    history.append(SystemMessage(content=system_message['content']))
-    for query, ans in zip(history_messages[0::2], history_messages[1::2]):
-        assert query['role'] == 'user'
-        assert ans['role'] == 'assistant'
-        history.append(HumanMessage(content=query['content']))
-        history.append(AIMessage(content=ans['content']))
-    return new_message['content'], history
+
+def _create_bing_api_tool(bing_api_key):
+    params = {
+        "q": "query",
+        "count": 10,
+        "offset": 0,
+        "mkt": "zh-CN",
+        "safeSearch": "Moderate",
+        "textDecorations": True,
+        "textFormat": "HTML",
+    }
+    search = BingSearchAPIWrapper(
+        bing_subscription_key=bing_api_key,
+        bing_search_url="https://api.bing.microsoft.com/v7.0/search")
+    search_tool = Tool(
+                name="Search",
+                func=lambda x: search.results(x, 1),
+                description="useful for when you need to answer questions about current events or the current state of the world. the input to this should be a single search term. Output is a json string, you should"
+                # description="当你需要回答当前世界发生的事件或者有关当前世界的事实性问题时使用。输入的数据应该是一个搜索关键词。当时使用该工具时，你的输出应该包含搜索网站的源地址。",
+            )
+    return search_tool
+
 
 
 def _create_doc_search_tool(openai_api_key=None):

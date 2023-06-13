@@ -5,7 +5,9 @@ import openai.error
 
 from bot.bot import Bot
 from bot.chatgpt.chat_gpt_session import ChatGPTSession
-from bot.langchain.agents.custom_mrkl_agent import process_new_message, create_custom_mrkl_agent
+from bot.langchain.impls.custom_search_chain import KeywordSearchSummaryChain
+from bot.langchain.impls.custom_vectorstore_chain import VectorStoreChain
+from bot.langchain.impls.utils import extract_memory
 from bot.openai.open_ai_image import OpenAIImage
 from bot.session_manager import SessionManager
 from bridge.context import ContextType
@@ -44,7 +46,13 @@ class LangchainAgentBot(Bot, OpenAIImage):
         self.model = conf().get("model") or "gpt-3.5-turbo"
         self.openai_api_key = conf().get("open_ai_api_key")
         self.serp_api_key = conf().get("serp_api_key")
-        self.agent_chain = create_custom_mrkl_agent(serp_api_key=self.serp_api_key, openai_api_key=self.openai_api_key)
+        self.search_chain = KeywordSearchSummaryChain(
+            openai_api_key=self.openai_api_key,
+            search_api_key=self.serp_api_key)
+
+        self.vectordb_chain = VectorStoreChain(
+            openai_api_key=self.openai_api_key
+        )
 
     def reply(self, query, context=None):
         # acquire reply content
@@ -117,7 +125,9 @@ class LangchainAgentBot(Bot, OpenAIImage):
             if args is None:
                 args = self.args
 
-            response = process_new_message(chain=self.agent_chain, messages=session.messages)
+            new_message, history = extract_memory(session.messages)
+            # response = self.search_chain.reply_text(new_message)
+            response = self.vectordb_chain.reply_text(new_message)
 
 
             logger.info("[ChatGPT] reply={}".format(response))
