@@ -1,6 +1,6 @@
 import pathlib
 
-from langchain import OpenAI, PromptTemplate
+from langchain import PromptTemplate
 from langchain.chains import RetrievalQA
 from langchain.chat_models import ChatOpenAI
 from langchain.document_loaders import Docx2txtLoader
@@ -23,10 +23,6 @@ class VectorStoreChain:
             openai_api_key=openai_api_key,
             temperature=0.0,
             model_name="gpt-3.5-turbo-0613")
-        # vector_db_llm = OpenAI(
-        #     openai_api_key=openai_api_key,
-        #     temperature=0.0)
-
         logger.info("[VectorStoreChain] Creating docsearch")
         docsearch = cls.create_doc_search(openai_api_key=openai_api_key)
 

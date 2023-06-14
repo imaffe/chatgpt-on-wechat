@@ -1,4 +1,4 @@
-from langchain import OpenAI, PromptTemplate, LLMChain
+from langchain import PromptTemplate, LLMChain
 from langchain.chat_models import ChatOpenAI
 from langchain.utilities import BingSearchAPIWrapper
 

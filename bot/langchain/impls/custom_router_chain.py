@@ -1,7 +1,6 @@
-import json
 from typing import Dict, Type, Any
 
-from langchain import PromptTemplate, OpenAI, LLMChain
+from langchain import PromptTemplate
 from langchain.chains.router import LLMRouterChain
 from langchain.chat_models import ChatOpenAI
 from langchain.output_parsers.json import parse_and_check_json_markdown
@@ -9,7 +8,7 @@ from langchain.schema import OutputParserException, BaseOutputParser
 
 from bot.langchain.impls.custom_search_chain import KeywordSearchSummaryChain
 from bot.langchain.impls.custom_vectorstore_chain import VectorStoreChain
-from bot.langchain.impls.default_chat_llm import DefaultConversationChain
+from bot.langchain.deprecate.default_chat_llm import DefaultConversationChain
 from common.log import logger
 
 MULTI_PROMPT_ROUTER_TEMPLATE = """\
@@ -97,14 +96,6 @@ class CustomRoutingChain:
 
         logger.info("The destination is: {}, input: {}".format(destination, raw_inputs))
         next_inputs = raw_inputs['input']
-        # if destination == CHAIN_VECTORDB:
-        #     return self.vector_db_chain.reply_text(next_inputs)
-        # elif destination == CHAIN_SEARCH:
-        #     return self.search_chain.reply_text(next_inputs)
-        # elif destination == CHAIN_DEFAULT:
-        #     return self.default_chain.reply_text(next_inputs, history)
-        # else:
-        #     return self.default_chain.reply_text(next_inputs, history)
         if destination == CHAIN_VECTORDB:
             return self.vector_db_chain.reply_text(next_inputs)
         else:
