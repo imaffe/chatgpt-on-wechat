@@ -1,4 +1,5 @@
 from langchain import OpenAI, PromptTemplate, LLMChain
+from langchain.chat_models import ChatOpenAI
 from langchain.utilities import BingSearchAPIWrapper
 
 class KeywordSearchSummaryChain:
@@ -12,10 +13,10 @@ class KeywordSearchSummaryChain:
 
     @classmethod
     def create_keyword_chain(cls, openai_api_key):
-        keyword_llm = OpenAI(
+        keyword_llm = ChatOpenAI(
             openai_api_key=openai_api_key,
             temperature=0.1,
-            model_name="gpt-3.5-turbo")
+            model_name="gpt-3.5-turbo-0613")
 
         keyword_prompt = """
         A Keyword is an input to an search engine such as Google or Bing. It is used to find relevant information for a topic.
@@ -34,10 +35,10 @@ class KeywordSearchSummaryChain:
 
     @classmethod
     def create_analyze_chain(cls, openai_api_key):
-        analyze_llm = OpenAI(
+        analyze_llm = ChatOpenAI(
             openai_api_key=openai_api_key,
             temperature=0.1,
-            model_name="gpt-3.5-turbo")
+            model_name="gpt-3.5-turbo-0613")
 
         analyze_prompt = """
         User has asked the following question: 

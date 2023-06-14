@@ -82,5 +82,5 @@ class VectorStoreChain:
         return docsearch
 
     def reply_text(self, user_question):
-        answer = self.vector_db_chain.run(user_question)
+        answer = self.vector_db_chain.run({"query": user_question})
         return answer
