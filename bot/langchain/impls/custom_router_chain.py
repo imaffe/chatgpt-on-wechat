@@ -4,6 +4,10 @@ from langchain import PromptTemplate, OpenAI, LLMChain
 from langchain.output_parsers.json import parse_and_check_json_markdown
 from langchain.schema import OutputParserException, BaseOutputParser
 
+from bot.langchain.impls.custom_search_chain import KeywordSearchSummaryChain
+from bot.langchain.impls.custom_vectorstore_chain import VectorStoreChain
+from bot.langchain.impls.default_chat_llm import DefaultConversationChain
+
 MULTI_PROMPT_ROUTER_TEMPLATE = """\
 Given a raw text input to a language model select the function best suited for \
 the input. You will be given the names of the available function and a description of \
@@ -48,16 +52,17 @@ class CustomRoutingChain:
     def __init__(
         self,
         openai_api_key: str,
-        destination_functions: Dict[str, str],
-        default_function: str
+        search_api_key: str,
     ):
         self.openai_api_key = openai_api_key
-        self.destination_functions = destination_functions
-        self.default_function = default_function
         self.routing_chain = self.create_routing_chain(openai_api_key)
 
+        self.vector_db_chain = VectorStoreChain(openai_api_key=openai_api_key)
+        self.search_chain = KeywordSearchSummaryChain(openai_api_key=openai_api_key, search_api_key=search_api_key)
+        self.default_chain = DefaultConversationChain(openai_api_key=openai_api_key)
     @classmethod
-    def create_routing_chain(cls, openai_api_key, default: str):
+
+    def create_routing_chain(cls, openai_api_key):
 
         routing_prompt = PromptTemplate(
             template=MULTI_PROMPT_ROUTER_TEMPLATE,
@@ -86,7 +91,7 @@ class CustomRoutingChain:
         elif destination == CHAIN_SEARCH:
             return self.search_chain.reply_text(next_inputs)
         elif destination == CHAIN_DEFAULT:
-            return self.default_chain.reply_text(next_inputs, history)
+            return self.default_chain.run(next_inputs, history)
         else:
             raise ValueError(f"Unknown destination: {destination}")
 

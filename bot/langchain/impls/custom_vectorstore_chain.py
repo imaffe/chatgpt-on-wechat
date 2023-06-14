@@ -22,7 +22,10 @@ class VectorStoreChain:
         vector_db_llm = ChatOpenAI(
             openai_api_key=openai_api_key,
             temperature=0.0,
-            model_name="gpt-3.5-turbo")
+            model_name="gpt-3.5-turbo-0613")
+        # vector_db_llm = OpenAI(
+        #     openai_api_key=openai_api_key,
+        #     temperature=0.0)
 
         logger.info("[VectorStoreChain] Creating docsearch")
         docsearch = cls.create_doc_search(openai_api_key=openai_api_key)
